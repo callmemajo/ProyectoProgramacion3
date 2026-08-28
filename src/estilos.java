@@ -11,6 +11,8 @@ public final class estilos {
     public static final Color ROJO = new Color(0xdc, 0x26, 0x26);
     public static final Color MORADO = new Color(0x7c, 0x3a, 0xed);
     public static final Color TEAL = new Color(0x0d, 0x94, 0x88);
+    public static final Color NARANJA = new Color(0xea, 0x58, 0x0c);
+    public static final Color ROSA = new Color(0xdb, 0x27, 0x77);
 
     public static final Color TEXTO_SECUNDARIO = new Color(0x52, 0x51, 0x4e);
     public static final Color TEXTO_TITULO = new Color(0x1f, 0x20, 0x37);
@@ -24,6 +26,8 @@ public final class estilos {
     public static final Color ACTIVA_TEXTO = new Color(0x15, 0x80, 0x3d);
     public static final Color CANCELADA_FONDO = new Color(0xe5, 0xe7, 0xeb);
     public static final Color CANCELADA_TEXTO = new Color(0x52, 0x51, 0x4e);
+    public static final Color OCUPADO_FONDO = new Color(0xfe, 0xf3, 0xc7);
+    public static final Color OCUPADO_TEXTO = new Color(0x7c, 0x4a, 0x03);
 
     private estilos() {
     }

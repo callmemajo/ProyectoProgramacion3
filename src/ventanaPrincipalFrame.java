@@ -64,16 +64,16 @@ public class ventanaPrincipalFrame extends JFrame {
         pestanas.setBackground(Color.WHITE);
         if (usuario instanceof funcionario funcionario) {
             pestanas.addTab("Reservas", new reservasPanel(funcionario));
-            pestanas.addTab("Calendarizacion", pantallaPendiente("Calendarizacion de recursos"));
-            pestanas.addTab("Actividades", pantallaPendiente("Calendarizacion de actividades"));
-            pestanas.addTab("Estadisticas", pantallaPendiente("Estadisticas"));
+            pestanas.addTab("Calendarizacion", new calendarizacionRecursosPanel());
+            pestanas.addTab("Actividades", new actividadesPanel());
+            pestanas.addTab("Estadisticas", new estadisticasPanel());
         } else {
             pestanas.addTab("Funcionarios", pantallaPendiente("Lista de funcionarios"));
             pestanas.addTab("Categorias", pantallaPendiente("Lista de categorias de recursos"));
             pestanas.addTab("Recursos", pantallaPendiente("Lista de recursos"));
-            pestanas.addTab("Calendarizacion", pantallaPendiente("Calendarizacion de recursos"));
-            pestanas.addTab("Actividades", pantallaPendiente("Calendarizacion de actividades"));
-            pestanas.addTab("Estadisticas", pantallaPendiente("Estadisticas"));
+            pestanas.addTab("Calendarizacion", new calendarizacionRecursosPanel());
+            pestanas.addTab("Actividades", new actividadesPanel());
+            pestanas.addTab("Estadisticas", new estadisticasPanel());
         }
         return pestanas;
     }
