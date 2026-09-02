@@ -1,4 +1,5 @@
-import reservas.datos.almacenDatos;
+package reservas;
+
 import reservas.modelo.*;
 
 import java.time.LocalDate;

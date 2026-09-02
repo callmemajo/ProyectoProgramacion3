@@ -1,6 +1,6 @@
-package reservas.controlador;
+package reservas.controller;
 
-import reservas.datos.almacenDatos;
+import reservas.almacenDatos;
 import reservas.modelo.categoria;
 import reservas.modelo.recurso;
 import reservas.modelo.reserva;

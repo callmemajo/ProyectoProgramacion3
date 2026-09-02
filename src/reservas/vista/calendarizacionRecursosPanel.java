@@ -1,6 +1,8 @@
 package reservas.vista;
 
-import reservas.controlador.controladorActividades;
+import reservas.controller.controladorCalendarizacion;
+import reservas.modelo.categoria;
+import reservas.modelo.recurso;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -12,16 +14,15 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class actividadesPanel extends JPanel {
+public class calendarizacionRecursosPanel extends JPanel {
 
     private static final DateTimeFormatter FORMATO_FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    private static final DateTimeFormatter FORMATO_FECHA_CORTA = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    private static final String[] ABREVIATURAS_DIA = {"lun", "mar", "mie", "jue", "vie"};
-    private static final int DIAS_SEMANA = ABREVIATURAS_DIA.length;
 
-    private final controladorActividades controlador = new controladorActividades();
+    private final controladorCalendarizacion controlador = new controladorCalendarizacion();
 
-    private final JTextField campoFechaReferencia = new JTextField();
+    private final JTextField campoFecha = new JTextField();
+    private final JComboBox<categoria> comboCategoria =
+            new JComboBox<>(controlador.listarCategorias().toArray(new categoria[0]));
     private final DefaultTableModel modeloTabla = new DefaultTableModel() {
         @Override
         public boolean isCellEditable(int fila, int columna) {
@@ -30,7 +31,7 @@ public class actividadesPanel extends JPanel {
     };
     private final JTable tabla = new JTable(modeloTabla);
 
-    public actividadesPanel() {
+    public calendarizacionRecursosPanel() {
         setLayout(new BorderLayout(0, 16));
         setBorder(BorderFactory.createEmptyBorder(18, 18, 18, 18));
         setBackground(estilos.FONDO_VENTANA);
@@ -38,15 +39,15 @@ public class actividadesPanel extends JPanel {
         add(construirTarjetaFiltros(), BorderLayout.NORTH);
         add(construirTarjetaTabla(), BorderLayout.CENTER);
 
-        campoFechaReferencia.setText(LocalDate.now().format(FORMATO_FECHA));
+        campoFecha.setText(LocalDate.now().format(FORMATO_FECHA));
         cargarMatriz();
     }
 
     private JPanel construirTarjetaFiltros() {
-        panelTarjeta tarjeta = new panelTarjeta(estilos.NARANJA);
+        panelTarjeta tarjeta = new panelTarjeta(estilos.MORADO);
         tarjeta.setLayout(new BoxLayout(tarjeta, BoxLayout.Y_AXIS));
 
-        JLabel titulo = new JLabel("Semana");
+        JLabel titulo = new JLabel("Filtros");
         titulo.setFont(titulo.getFont().deriveFont(Font.BOLD, 15f));
         titulo.setForeground(estilos.TEXTO_TITULO);
         titulo.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -56,7 +57,8 @@ public class actividadesPanel extends JPanel {
         JPanel filaCampos = new JPanel(new GridLayout(1, 4, 10, 0));
         filaCampos.setOpaque(false);
         filaCampos.setAlignmentX(Component.LEFT_ALIGNMENT);
-        filaCampos.add(campoConEtiqueta("Fecha de referencia (dd/mm/aaaa)", campoFechaReferencia));
+        filaCampos.add(campoConEtiqueta("Fecha (dd/mm/aaaa)", campoFecha));
+        filaCampos.add(campoConEtiqueta("Categoria", comboCategoria));
         tarjeta.add(filaCampos);
         tarjeta.add(Box.createVerticalStrut(14));
 
@@ -77,17 +79,17 @@ public class actividadesPanel extends JPanel {
     }
 
     private JPanel construirTarjetaTabla() {
-        panelTarjeta tarjeta = new panelTarjeta(estilos.NARANJA);
+        panelTarjeta tarjeta = new panelTarjeta(estilos.MORADO);
         tarjeta.setLayout(new BorderLayout(0, 10));
 
-        JLabel titulo = new JLabel("Actividades semanales");
+        JLabel titulo = new JLabel("Calendarizacion de recursos");
         titulo.setFont(titulo.getFont().deriveFont(Font.BOLD, 15f));
         titulo.setForeground(estilos.TEXTO_TITULO);
         tarjeta.add(titulo, BorderLayout.NORTH);
 
-        tabla.setRowHeight(54);
+        tabla.setRowHeight(46);
         tabla.setGridColor(estilos.BORDE);
-        tabla.getTableHeader().setFont(tabla.getTableHeader().getFont().deriveFont(Font.BOLD, 11f));
+        tabla.getTableHeader().setFont(tabla.getTableHeader().getFont().deriveFont(Font.BOLD, 12f));
         tabla.getTableHeader().setBackground(new Color(0xf1, 0xf5, 0xf9));
         tabla.setDefaultRenderer(Object.class, new rendererCeldaMatriz());
         JScrollPane scroll = new JScrollPane(tabla);
@@ -119,26 +121,25 @@ public class actividadesPanel extends JPanel {
     }
 
     private void cargarMatriz() {
-        LocalDate fechaReferencia;
+        LocalDate fecha;
         try {
-            fechaReferencia = LocalDate.parse(campoFechaReferencia.getText().trim(), FORMATO_FECHA);
+            fecha = LocalDate.parse(campoFecha.getText().trim(), FORMATO_FECHA);
         } catch (DateTimeParseException ex) {
             JOptionPane.showMessageDialog(this, "La fecha no es valida. Usa el formato dd/mm/aaaa.",
                     "Revisa el formulario", JOptionPane.WARNING_MESSAGE);
             return;
         }
-
-        LocalDate lunes = fechaReferencia.minusDays(fechaReferencia.getDayOfWeek().getValue() - 1);
-        List<LocalDate> diasSemana = new ArrayList<>();
-        for (int i = 0; i < DIAS_SEMANA; i++) {
-            diasSemana.add(lunes.plusDays(i));
+        categoria categoriaSeleccionada = (categoria) comboCategoria.getSelectedItem();
+        if (categoriaSeleccionada == null) {
+            return;
         }
 
-        String[] columnas = new String[DIAS_SEMANA + 1];
+        List<recurso> recursosDeCategoria = controlador.recursosDeCategoria(categoriaSeleccionada);
+
+        String[] columnas = new String[recursosDeCategoria.size() + 1];
         columnas[0] = "Hora";
-        for (int i = 0; i < DIAS_SEMANA; i++) {
-            LocalDate dia = diasSemana.get(i);
-            columnas[i + 1] = ABREVIATURAS_DIA[i] + " " + dia.format(FORMATO_FECHA_CORTA);
+        for (int i = 0; i < recursosDeCategoria.size(); i++) {
+            columnas[i + 1] = recursosDeCategoria.get(i).getDescripcion();
         }
         modeloTabla.setColumnIdentifiers(columnas);
         if (tabla.getColumnModel().getColumnCount() > 0) {
@@ -148,10 +149,10 @@ public class actividadesPanel extends JPanel {
         modeloTabla.setRowCount(0);
 
         for (LocalTime hora : horasDelDia()) {
-            Object[] fila = new Object[DIAS_SEMANA + 1];
+            Object[] fila = new Object[recursosDeCategoria.size() + 1];
             fila[0] = hora.toString();
-            for (int i = 0; i < DIAS_SEMANA; i++) {
-                fila[i + 1] = controlador.textoCelda(diasSemana.get(i), hora);
+            for (int i = 0; i < recursosDeCategoria.size(); i++) {
+                fila[i + 1] = controlador.textoCelda(recursosDeCategoria.get(i), fecha, hora);
             }
             modeloTabla.addRow(fila);
         }

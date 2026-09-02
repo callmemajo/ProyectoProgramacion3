@@ -1,6 +1,6 @@
 package reservas.vista;
 
-import reservas.controlador.controladorReservas;
+import reservas.controller.controladorReservas;
 import reservas.modelo.categoria;
 import reservas.modelo.funcionario;
 import reservas.modelo.recurso;

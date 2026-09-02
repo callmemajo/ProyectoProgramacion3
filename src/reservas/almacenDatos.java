@@ -1,4 +1,4 @@
-package reservas.datos;
+package reservas;
 
 import reservas.modelo.*;
 

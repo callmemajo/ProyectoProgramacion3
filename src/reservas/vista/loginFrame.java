@@ -1,6 +1,6 @@
 package reservas.vista;
 
-import reservas.controlador.controladorLogin;
+import reservas.controller.controladorLogin;
 import reservas.modelo.usuario;
 
 import javax.swing.*;

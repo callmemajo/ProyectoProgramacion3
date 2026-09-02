@@ -1,6 +1,6 @@
 package reservas.vista;
 
-import reservas.controlador.controladorEstadisticas;
+import reservas.controller.controladorEstadisticas;
 import reservas.modelo.categoria;
 
 import javax.swing.*;

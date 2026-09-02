@@ -1,6 +1,6 @@
 package reservas.vista;
 
-import reservas.controlador.controladorCambiarClave;
+import reservas.controller.controladorCambiarClave;
 import reservas.modelo.usuario;
 
 import javax.swing.*;
