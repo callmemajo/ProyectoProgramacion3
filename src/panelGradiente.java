@@ -1,4 +1,4 @@
-package reservas.ui;
+package reservas.vista;
 
 import javax.swing.*;
 import java.awt.*;

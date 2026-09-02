@@ -1,4 +1,4 @@
-package reservas.ui;
+package reservas.vista;
 
 import reservas.modelo.funcionario;
 import reservas.modelo.usuario;

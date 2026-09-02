@@ -1,6 +1,6 @@
-package reservas.ui;
+package reservas.vista;
 
-import reservas.datos.almacenDatos;
+import reservas.controlador.controladorLogin;
 import reservas.modelo.usuario;
 
 import javax.swing.*;
@@ -8,6 +8,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 
 public class loginFrame extends JFrame {
+
+    private final controladorLogin controlador = new controladorLogin();
 
     private final JTextField campoId = new JTextField(16);
     private final JPasswordField campoClave = new JPasswordField(16);
@@ -121,8 +123,8 @@ public class loginFrame extends JFrame {
             return;
         }
 
-        usuario usuario = almacenDatos.buscarUsuario(id);
-        if (usuario == null || !usuario.autenticar(clave)) {
+        usuario usuario = controlador.autenticar(id, clave);
+        if (usuario == null) {
             mostrarError("Id o clave incorrectos.");
             return;
         }

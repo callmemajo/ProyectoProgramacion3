@@ -1,6 +1,6 @@
 package reservas;
 
-import reservas.ui.loginFrame;
+import reservas.vista.loginFrame;
 
 import javax.swing.*;
 

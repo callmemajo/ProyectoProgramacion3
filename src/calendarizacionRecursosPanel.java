@@ -1,9 +1,8 @@
-package reservas.ui;
+package reservas.vista;
 
-import reservas.datos.almacenDatos;
+import reservas.controlador.controladorCalendarizacion;
 import reservas.modelo.categoria;
 import reservas.modelo.recurso;
-import reservas.modelo.reserva;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -19,9 +18,11 @@ public class calendarizacionRecursosPanel extends JPanel {
 
     private static final DateTimeFormatter FORMATO_FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
+    private final controladorCalendarizacion controlador = new controladorCalendarizacion();
+
     private final JTextField campoFecha = new JTextField();
     private final JComboBox<categoria> comboCategoria =
-            new JComboBox<>(almacenDatos.categorias.toArray(new categoria[0]));
+            new JComboBox<>(controlador.listarCategorias().toArray(new categoria[0]));
     private final DefaultTableModel modeloTabla = new DefaultTableModel() {
         @Override
         public boolean isCellEditable(int fila, int columna) {
@@ -67,7 +68,6 @@ public class calendarizacionRecursosPanel extends JPanel {
         botonImprimir.addActionListener(e -> JOptionPane.showMessageDialog(this,
                 "La generacion de reporte en PDF queda pendiente para una siguiente iteracion.",
                 "Pendiente", JOptionPane.INFORMATION_MESSAGE));
-
         JPanel filaBotones = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         filaBotones.setOpaque(false);
         filaBotones.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -134,12 +134,7 @@ public class calendarizacionRecursosPanel extends JPanel {
             return;
         }
 
-        List<recurso> recursosDeCategoria = new ArrayList<>();
-        for (recurso r : almacenDatos.recursos) {
-            if (r.getCategoria() == categoriaSeleccionada) {
-                recursosDeCategoria.add(r);
-            }
-        }
+        List<recurso> recursosDeCategoria = controlador.recursosDeCategoria(categoriaSeleccionada);
 
         String[] columnas = new String[recursosDeCategoria.size() + 1];
         columnas[0] = "Hora";
@@ -157,28 +152,9 @@ public class calendarizacionRecursosPanel extends JPanel {
             Object[] fila = new Object[recursosDeCategoria.size() + 1];
             fila[0] = hora.toString();
             for (int i = 0; i < recursosDeCategoria.size(); i++) {
-                fila[i + 1] = textoCelda(recursosDeCategoria.get(i), fecha, hora);
+                fila[i + 1] = controlador.textoCelda(recursosDeCategoria.get(i), fecha, hora);
             }
             modeloTabla.addRow(fila);
         }
-    }
-
-    private String textoCelda(recurso recurso, LocalDate fecha, LocalTime hora) {
-        for (reserva r : almacenDatos.reservas) {
-            if (!r.estaActiva()) {
-                continue;
-            }
-            if (!r.getFecha().equals(fecha)) {
-                continue;
-            }
-            if (!r.getRecursosAsignados().contains(recurso)) {
-                continue;
-            }
-            boolean dentroDelRango = !hora.isBefore(r.getHoraInicio()) && hora.isBefore(r.getHoraFin());
-            if (dentroDelRango) {
-                return r.getActividad() + " - " + r.getFuncionario().getNombreMostrar();
-            }
-        }
-        return "";
     }
 }

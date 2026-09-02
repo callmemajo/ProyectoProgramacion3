@@ -1,6 +1,6 @@
-package reservas.ui;
+package reservas.vista;
 
-import reservas.datos.almacenDatos;
+import reservas.controlador.controladorReservas;
 import reservas.modelo.categoria;
 import reservas.modelo.funcionario;
 import reservas.modelo.recurso;
@@ -22,6 +22,7 @@ public class reservasPanel extends JPanel {
 
     private static final DateTimeFormatter FORMATO_FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
+    private final controladorReservas controlador = new controladorReservas();
     private final funcionario funcionario;
 
     private final JTextField campoActividad = new JTextField();
@@ -29,7 +30,7 @@ public class reservasPanel extends JPanel {
     private final JComboBox<LocalTime> comboHoraInicio = new JComboBox<>(horasDelDia());
     private final JComboBox<LocalTime> comboHoraFin = new JComboBox<>(horasDelDia());
     private final JList<categoria> listaCategorias =
-            new JList<>(almacenDatos.categorias.toArray(new categoria[0]));
+            new JList<>(controlador.listarCategorias().toArray(new categoria[0]));
 
     private final DefaultTableModel modeloTabla = new DefaultTableModel(
             new Object[]{"Id", "Actividad", "Fecha", "Horario", "Recursos", "Estado"}, 0) {
@@ -206,19 +207,11 @@ public class reservasPanel extends JPanel {
             return;
         }
 
-        List<recurso> recursosAsignados = new ArrayList<>();
-        List<categoria> categoriasSinDisponibilidad = new ArrayList<>();
-        for (categoria categoria : categoriasSeleccionadas) {
-            recurso recurso = almacenDatos.buscarRecursoDisponible(categoria, fecha, horaInicio, horaFin, null);
-            if (recurso != null) {
-                recursosAsignados.add(recurso);
-            } else {
-                categoriasSinDisponibilidad.add(categoria);
-            }
-        }
+        controladorReservas.resultadoReserva resultado = controlador.crearReserva(
+                funcionario, actividad, fecha, horaInicio, horaFin, categoriasSeleccionadas);
 
-        if (!categoriasSinDisponibilidad.isEmpty()) {
-            String nombres = categoriasSinDisponibilidad.stream()
+        if (!resultado.categoriasSinDisponibilidad.isEmpty()) {
+            String nombres = resultado.categoriasSinDisponibilidad.stream()
                     .map(categoria::getDescripcion)
                     .collect(Collectors.joining(", "));
             JOptionPane.showMessageDialog(this,
@@ -228,11 +221,8 @@ public class reservasPanel extends JPanel {
             return;
         }
 
-        reserva nueva = new reserva(almacenDatos.generarIdReserva(), actividad, fecha,
-                horaInicio, horaFin, reservas.modelo.estadoReserva.ACTIVA, funcionario, recursosAsignados);
-        almacenDatos.reservas.add(nueva);
-
-        String idsRecursos = recursosAsignados.stream().map(recurso::getId).collect(Collectors.joining(", "));
+        reserva nueva = resultado.reservaCreada;
+        String idsRecursos = nueva.getRecursosAsignados().stream().map(recurso::getId).collect(Collectors.joining(", "));
         JOptionPane.showMessageDialog(this,
                 "Reserva " + nueva.getId() + " creada con exito.\nRecursos asignados: " + idsRecursos,
                 "Reserva creada", JOptionPane.INFORMATION_MESSAGE);
@@ -249,15 +239,6 @@ public class reservasPanel extends JPanel {
         }
         reserva seleccionada = reservasMostradas.get(fila);
 
-        if (!seleccionada.estaActiva()) {
-            mostrarError("Esa reserva ya esta cancelada.");
-            return;
-        }
-        if (!seleccionada.esFutura()) {
-            mostrarError("Solo se pueden cancelar reservas futuras.");
-            return;
-        }
-
         int confirmacion = JOptionPane.showConfirmDialog(this,
                 "Cancelar la reserva " + seleccionada.getId() + "? Se liberaran sus recursos.",
                 "Confirmar cancelacion", JOptionPane.YES_NO_OPTION);
@@ -265,7 +246,12 @@ public class reservasPanel extends JPanel {
             return;
         }
 
-        seleccionada.cancelar();
+        try {
+            controlador.cancelarReserva(seleccionada);
+        } catch (IllegalStateException ex) {
+            mostrarError(ex.getMessage());
+            return;
+        }
         cargarTabla();
     }
 
@@ -286,7 +272,7 @@ public class reservasPanel extends JPanel {
 
     private void cargarTabla() {
         modeloTabla.setRowCount(0);
-        reservasMostradas = almacenDatos.reservasDe(funcionario);
+        reservasMostradas = controlador.listarReservasDe(funcionario);
         for (reserva r : reservasMostradas) {
             String horario = r.getHoraInicio() + " - " + r.getHoraFin();
             String recursosTexto = r.getRecursosAsignados().stream()

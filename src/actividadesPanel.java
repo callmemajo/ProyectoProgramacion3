@@ -1,7 +1,6 @@
-package reservas.ui;
+package reservas.vista;
 
-import reservas.datos.almacenDatos;
-import reservas.modelo.reserva;
+import reservas.controlador.controladorActividades;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -19,6 +18,8 @@ public class actividadesPanel extends JPanel {
     private static final DateTimeFormatter FORMATO_FECHA_CORTA = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final String[] ABREVIATURAS_DIA = {"lun", "mar", "mie", "jue", "vie"};
     private static final int DIAS_SEMANA = ABREVIATURAS_DIA.length;
+
+    private final controladorActividades controlador = new controladorActividades();
 
     private final JTextField campoFechaReferencia = new JTextField();
     private final DefaultTableModel modeloTabla = new DefaultTableModel() {
@@ -65,7 +66,6 @@ public class actividadesPanel extends JPanel {
         botonImprimir.addActionListener(e -> JOptionPane.showMessageDialog(this,
                 "La generacion de reporte en PDF queda pendiente para una siguiente iteracion.",
                 "Pendiente", JOptionPane.INFORMATION_MESSAGE));
-
         JPanel filaBotones = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         filaBotones.setOpaque(false);
         filaBotones.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -151,26 +151,9 @@ public class actividadesPanel extends JPanel {
             Object[] fila = new Object[DIAS_SEMANA + 1];
             fila[0] = hora.toString();
             for (int i = 0; i < DIAS_SEMANA; i++) {
-                fila[i + 1] = textoCelda(diasSemana.get(i), hora);
+                fila[i + 1] = controlador.textoCelda(diasSemana.get(i), hora);
             }
             modeloTabla.addRow(fila);
         }
-    }
-
-    private String textoCelda(LocalDate fecha, LocalTime hora) {
-        List<String> coincidencias = new ArrayList<>();
-        for (reserva r : almacenDatos.reservas) {
-            if (!r.estaActiva()) {
-                continue;
-            }
-            if (!r.getFecha().equals(fecha)) {
-                continue;
-            }
-            boolean dentroDelRango = !hora.isBefore(r.getHoraInicio()) && hora.isBefore(r.getHoraFin());
-            if (dentroDelRango) {
-                coincidencias.add(r.getActividad() + " (" + r.getFuncionario().getNombreMostrar() + ")");
-            }
-        }
-        return String.join(" / ", coincidencias);
     }
 }

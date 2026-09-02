@@ -1,12 +1,14 @@
-package reservas.ui;
+package reservas.vista;
 
-import reservas.datos.almacenDatos;
+import reservas.controlador.controladorCambiarClave;
 import reservas.modelo.usuario;
 
 import javax.swing.*;
 import java.awt.*;
 
 public class cambiarClaveDialog extends JDialog {
+
+    private final controladorCambiarClave controlador = new controladorCambiarClave();
 
     private final usuario usuarioConocido;
     private JTextField campoId;
@@ -123,7 +125,7 @@ public class cambiarClaveDialog extends JDialog {
                 mostrarError("Ingresa el id del usuario.");
                 return;
             }
-            usuario = almacenDatos.buscarUsuario(id);
+            usuario = controlador.buscarUsuario(id);
             if (usuario == null) {
                 mostrarError("No existe un usuario con ese id.");
                 return;
@@ -134,13 +136,8 @@ public class cambiarClaveDialog extends JDialog {
         String claveNueva = new String(campoClaveNueva.getPassword());
         String claveConfirmar = new String(campoClaveConfirmar.getPassword());
 
-        if (!claveNueva.equals(claveConfirmar)) {
-            mostrarError("La clave nueva y su confirmacion no coinciden.");
-            return;
-        }
-
         try {
-            usuario.cambiarClave(claveActual, claveNueva);
+            controlador.cambiarClave(usuario, claveActual, claveNueva, claveConfirmar);
         } catch (IllegalArgumentException ex) {
             mostrarError(ex.getMessage());
             return;
