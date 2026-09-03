@@ -1,5 +1,5 @@
-package reservas;
-
+import reservas.controller.controladorFuncionarios;
+import reservas.almacenDatos;
 import reservas.modelo.*;
 
 import java.time.LocalDate;
@@ -18,6 +18,11 @@ public class pruebaLogica {
         probarReservaSinDisponibilidad();
         probarCancelarReserva();
         probarNoCancelarReservaPasada();
+        probarCrearFuncionario();
+        probarNoCrearFuncionarioConIdRepetido();
+        probarEditarFuncionario();
+        probarNoEliminarFuncionarioConReservas();
+        probarEliminarFuncionarioSinReservas();
 
         System.out.println();
         System.out.println("Resultado: " + pasaron + " pasaron, " + fallaron + " fallaron.");
@@ -123,6 +128,61 @@ public class pruebaLogica {
                 LocalDate.now().minusDays(5), LocalTime.of(9, 0), LocalTime.of(10, 0),
                 estadoReserva.ACTIVA, juan, List.of());
         verificar("una reserva con fecha pasada ya no se considera 'futura'", !reservaPasada.esFutura());
+    }
+
+    private static void probarCrearFuncionario() {
+        controladorFuncionarios controlador = new controladorFuncionarios();
+        int cantidadAntes = controlador.listarFuncionarios().size();
+
+        controlador.crearFuncionario("333", "clave333", "Pedro Solano", "8888-8888");
+
+        int cantidadDespues = controlador.listarFuncionarios().size();
+        verificar("crear funcionario aumenta la lista de funcionarios", cantidadDespues == cantidadAntes + 1);
+        verificar("el funcionario nuevo se puede autenticar", almacenDatos.buscarUsuario("333").autenticar("clave333"));
+    }
+
+    private static void probarNoCrearFuncionarioConIdRepetido() {
+        controladorFuncionarios controlador = new controladorFuncionarios();
+        boolean lanzoExcepcion = false;
+        try {
+            controlador.crearFuncionario("333", "otraClave123", "Otro Nombre", "1111-1111");
+        } catch (IllegalArgumentException ex) {
+            lanzoExcepcion = true;
+        }
+        verificar("no se puede crear un funcionario con un Id que ya existe", lanzoExcepcion);
+    }
+
+    private static void probarEditarFuncionario() {
+        controladorFuncionarios controlador = new controladorFuncionarios();
+        funcionario pedro = (funcionario) almacenDatos.buscarUsuario("333");
+
+        controlador.editarFuncionario(pedro, "Pedro Solano Mora", "7777-7777");
+
+        verificar("editar funcionario actualiza el nombre", pedro.getNombre().equals("Pedro Solano Mora"));
+        verificar("editar funcionario actualiza el telefono", pedro.getTelefono().equals("7777-7777"));
+    }
+
+    private static void probarNoEliminarFuncionarioConReservas() {
+        controladorFuncionarios controlador = new controladorFuncionarios();
+        funcionario juan = (funcionario) almacenDatos.buscarUsuario("111");
+
+        boolean lanzoExcepcion = false;
+        try {
+            controlador.eliminarFuncionario(juan);
+        } catch (IllegalStateException ex) {
+            lanzoExcepcion = true;
+        }
+        verificar("no se puede eliminar un funcionario que tiene reservas", lanzoExcepcion);
+        verificar("el funcionario con reservas sigue en la lista", almacenDatos.buscarUsuario("111") != null);
+    }
+
+    private static void probarEliminarFuncionarioSinReservas() {
+        controladorFuncionarios controlador = new controladorFuncionarios();
+        funcionario pedro = (funcionario) almacenDatos.buscarUsuario("333");
+
+        controlador.eliminarFuncionario(pedro);
+
+        verificar("eliminar un funcionario sin reservas lo quita de la lista", almacenDatos.buscarUsuario("333") == null);
     }
 
     private static void verificar(String descripcion, boolean condicion) {
