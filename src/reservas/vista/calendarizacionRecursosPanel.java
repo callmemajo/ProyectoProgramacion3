@@ -7,6 +7,8 @@ import reservas.modelo.recurso;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.io.File;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -65,9 +67,7 @@ public class calendarizacionRecursosPanel extends JPanel {
         JButton botonCargar = estilos.botonExito("Cargar");
         JButton botonImprimir = estilos.botonSecundario("Imprimir reporte");
         botonCargar.addActionListener(e -> cargarMatriz());
-        botonImprimir.addActionListener(e -> JOptionPane.showMessageDialog(this,
-                "La generacion de reporte en PDF queda pendiente para una siguiente iteracion.",
-                "Pendiente", JOptionPane.INFORMATION_MESSAGE));
+        botonImprimir.addActionListener(e -> accionImprimirReporte());
         JPanel filaBotones = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         filaBotones.setOpaque(false);
         filaBotones.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -110,6 +110,26 @@ public class calendarizacionRecursosPanel extends JPanel {
         }
         panel.add(campo, BorderLayout.CENTER);
         return panel;
+    }
+
+    private void accionImprimirReporte() {
+        JFileChooser selector = new JFileChooser();
+        selector.setSelectedFile(new File("reporte_calendarizacion.pdf"));
+        if (selector.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+        File archivo = selector.getSelectedFile();
+        if (!archivo.getName().toLowerCase().endsWith(".pdf")) {
+            archivo = new File(archivo.getParentFile(), archivo.getName() + ".pdf");
+        }
+        try {
+            generadorPdf.generarReporte(archivo.toPath(), "Reporte de Calendarizacion de Recursos", tabla);
+            JOptionPane.showMessageDialog(this, "Reporte generado en " + archivo.getAbsolutePath() + ".",
+                    "Reporte generado", JOptionPane.INFORMATION_MESSAGE);
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "No se pudo generar el reporte: " + ex.getMessage(),
+                    "Error", JOptionPane.WARNING_MESSAGE);
+        }
     }
 
     private static List<LocalTime> horasDelDia() {

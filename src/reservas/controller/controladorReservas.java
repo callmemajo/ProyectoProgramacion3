@@ -1,6 +1,7 @@
 package reservas.controller;
 
 import reservas.almacenDatos;
+import reservas.persistenciaXml;
 import reservas.modelo.categoria;
 import reservas.modelo.estadoReserva;
 import reservas.modelo.funcionario;
@@ -53,6 +54,7 @@ public class controladorReservas {
         reserva nueva = new reserva(almacenDatos.generarIdReserva(), actividad, fecha,
                 horaInicio, horaFin, estadoReserva.ACTIVA, funcionario, recursosAsignados);
         almacenDatos.reservas.add(nueva);
+        persistenciaXml.guardar();
         return new resultadoReserva(nueva, categoriasSinDisponibilidad);
     }
 
@@ -64,5 +66,6 @@ public class controladorReservas {
             throw new IllegalStateException("Solo se pueden cancelar reservas futuras.");
         }
         reserva.cancelar();
+        persistenciaXml.guardar();
     }
 }

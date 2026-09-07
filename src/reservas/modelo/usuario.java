@@ -20,6 +20,10 @@ public abstract class usuario {
         return rol;
     }
 
+    public String getClave() {
+        return clave;
+    }
+
     public boolean autenticar(String claveIngresada) {
         return clave != null && clave.equals(claveIngresada);
     }

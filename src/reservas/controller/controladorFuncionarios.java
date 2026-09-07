@@ -1,6 +1,7 @@
 package reservas.controller;
 
 import reservas.almacenDatos;
+import reservas.persistenciaXml;
 import reservas.modelo.funcionario;
 import reservas.modelo.reserva;
 import reservas.modelo.usuario;
@@ -36,6 +37,7 @@ public class controladorFuncionarios {
         }
         funcionario nuevo = new funcionario(id, clave, nombre, telefono);
         almacenDatos.usuarios.add(nuevo);
+        persistenciaXml.guardar();
     }
 
     public void editarFuncionario(funcionario funcionario, String nombre, String telefono) {
@@ -44,6 +46,7 @@ public class controladorFuncionarios {
         }
         funcionario.setNombre(nombre);
         funcionario.setTelefono(telefono);
+        persistenciaXml.guardar();
     }
 
     public void eliminarFuncionario(funcionario funcionario) {
@@ -53,5 +56,6 @@ public class controladorFuncionarios {
             }
         }
         almacenDatos.usuarios.remove(funcionario);
+        persistenciaXml.guardar();
     }
 }

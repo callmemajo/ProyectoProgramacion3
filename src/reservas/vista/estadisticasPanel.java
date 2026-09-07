@@ -6,6 +6,8 @@ import reservas.modelo.categoria;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.io.File;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -88,7 +90,8 @@ public class estadisticasPanel extends JPanel {
         JButton botonCargar = estilos.botonExito("Cargar");
         JButton botonImprimir = estilos.botonSecundario("Imprimir reporte");
         botonCargar.addActionListener(e -> cargarRecursos());
-        botonImprimir.addActionListener(e -> mostrarPendientePdf());
+        botonImprimir.addActionListener(e -> accionImprimirReporte(
+                "Reporte de Estadisticas - Recursos", "reporte_estadisticas_recursos.pdf", tablaRecursos));
         JPanel filaBotones = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         filaBotones.setOpaque(false);
         filaBotones.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -139,7 +142,8 @@ public class estadisticasPanel extends JPanel {
         JButton botonCargar = estilos.botonExito("Cargar");
         JButton botonImprimir = estilos.botonSecundario("Imprimir reporte");
         botonCargar.addActionListener(e -> cargarActividades());
-        botonImprimir.addActionListener(e -> mostrarPendientePdf());
+        botonImprimir.addActionListener(e -> accionImprimirReporte(
+                "Reporte de Estadisticas - Actividades", "reporte_estadisticas_actividades.pdf", tablaActividades));
         JPanel filaBotones = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         filaBotones.setOpaque(false);
         filaBotones.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -199,10 +203,24 @@ public class estadisticasPanel extends JPanel {
         return panel;
     }
 
-    private void mostrarPendientePdf() {
-        JOptionPane.showMessageDialog(this,
-                "La generacion de reporte en PDF queda pendiente para una siguiente iteracion.",
-                "Pendiente", JOptionPane.INFORMATION_MESSAGE);
+    private void accionImprimirReporte(String titulo, String nombreArchivoSugerido, JTable tabla) {
+        JFileChooser selector = new JFileChooser();
+        selector.setSelectedFile(new File(nombreArchivoSugerido));
+        if (selector.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+        File archivo = selector.getSelectedFile();
+        if (!archivo.getName().toLowerCase().endsWith(".pdf")) {
+            archivo = new File(archivo.getParentFile(), archivo.getName() + ".pdf");
+        }
+        try {
+            generadorPdf.generarReporte(archivo.toPath(), titulo, tabla);
+            JOptionPane.showMessageDialog(this, "Reporte generado en " + archivo.getAbsolutePath() + ".",
+                    "Reporte generado", JOptionPane.INFORMATION_MESSAGE);
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "No se pudo generar el reporte: " + ex.getMessage(),
+                    "Error", JOptionPane.WARNING_MESSAGE);
+        }
     }
 
     private void cargarRecursos() {

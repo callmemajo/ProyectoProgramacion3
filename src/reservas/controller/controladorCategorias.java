@@ -1,6 +1,7 @@
 package reservas.controller;
 
 import reservas.almacenDatos;
+import reservas.persistenciaXml;
 import reservas.modelo.categoria;
 import reservas.modelo.recurso;
 
@@ -26,6 +27,7 @@ public class controladorCategorias {
             throw new IllegalArgumentException("La descripcion es obligatoria.");
         }
         almacenDatos.categorias.add(new categoria(id, descripcion));
+        persistenciaXml.guardar();
     }
 
     public void editarCategoria(categoria categoria, String descripcion) {
@@ -33,6 +35,7 @@ public class controladorCategorias {
             throw new IllegalArgumentException("La descripcion es obligatoria.");
         }
         categoria.setDescripcion(descripcion);
+        persistenciaXml.guardar();
     }
 
     public void eliminarCategoria(categoria categoria) {
@@ -42,6 +45,7 @@ public class controladorCategorias {
             }
         }
         almacenDatos.categorias.remove(categoria);
+        persistenciaXml.guardar();
     }
 
     private categoria buscarCategoria(String id) {

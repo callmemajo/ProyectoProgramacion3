@@ -1,6 +1,7 @@
 package reservas.controller;
 
 import reservas.almacenDatos;
+import reservas.persistenciaXml;
 import reservas.modelo.usuario;
 
 public class controladorCambiarClave {
@@ -14,5 +15,6 @@ public class controladorCambiarClave {
             throw new IllegalArgumentException("La clave nueva y su confirmacion no coinciden.");
         }
         usuario.cambiarClave(claveActual, claveNueva);
+        persistenciaXml.guardar();
     }
 }

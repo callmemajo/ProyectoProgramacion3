@@ -86,6 +86,14 @@ public final class almacenDatos {
         return id;
     }
 
+    public static int obtenerSiguienteNumeroReserva() {
+        return siguienteNumeroReserva;
+    }
+
+    public static void establecerSiguienteNumeroReserva(int valor) {
+        siguienteNumeroReserva = valor;
+    }
+
     public static recurso buscarRecursoDisponible(categoria categoria, LocalDate fecha,
                                                   LocalTime horaInicio, LocalTime horaFin,
                                                   String idReservaAExcluir) {

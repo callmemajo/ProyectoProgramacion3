@@ -6,6 +6,8 @@ import reservas.modelo.categoria;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 public class categoriasPanel extends JPanel {
@@ -111,15 +113,33 @@ public class categoriasPanel extends JPanel {
         tarjeta.add(scrollTabla, BorderLayout.CENTER);
 
         JButton botonImprimir = estilos.botonSecundario("Imprimir reporte");
-        botonImprimir.addActionListener(e -> JOptionPane.showMessageDialog(this,
-                "La generacion de reporte en PDF queda pendiente para una siguiente iteracion.",
-                "Pendiente", JOptionPane.INFORMATION_MESSAGE));
+        botonImprimir.addActionListener(e -> accionImprimirReporte());
         JPanel filaAcciones = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         filaAcciones.setOpaque(false);
         filaAcciones.add(botonImprimir);
         tarjeta.add(filaAcciones, BorderLayout.SOUTH);
 
         return tarjeta;
+    }
+
+    private void accionImprimirReporte() {
+        JFileChooser selector = new JFileChooser();
+        selector.setSelectedFile(new File("reporte_categorias.pdf"));
+        if (selector.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+        File archivo = selector.getSelectedFile();
+        if (!archivo.getName().toLowerCase().endsWith(".pdf")) {
+            archivo = new File(archivo.getParentFile(), archivo.getName() + ".pdf");
+        }
+        try {
+            generadorPdf.generarReporte(archivo.toPath(), "Reporte de Categorias", tablaCategorias);
+            JOptionPane.showMessageDialog(this, "Reporte generado en " + archivo.getAbsolutePath() + ".",
+                    "Reporte generado", JOptionPane.INFORMATION_MESSAGE);
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "No se pudo generar el reporte: " + ex.getMessage(),
+                    "Error", JOptionPane.WARNING_MESSAGE);
+        }
     }
 
     private JPanel campoConEtiqueta(String etiqueta, JComponent campo) {

@@ -1,10 +1,16 @@
 import reservas.controller.controladorCategorias;
 import reservas.controller.controladorFuncionarios;
+import reservas.controller.controladorRecursos;
 import reservas.almacenDatos;
+import reservas.persistenciaXml;
 import reservas.modelo.*;
+import reservas.vista.generadorPdf;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 public class pruebaLogica {
@@ -29,6 +35,14 @@ public class pruebaLogica {
         probarEditarCategoria();
         probarNoEliminarCategoriaConRecursos();
         probarEliminarCategoriaSinRecursos();
+        probarCrearRecurso();
+        probarNoCrearRecursoConIdRepetido();
+        probarEditarRecurso();
+        probarNoEliminarRecursoConReservas();
+        probarEliminarRecursoSinReservas();
+        probarGenerarReportePdf();
+        probarGenerarReportePdfConTablaVacia();
+        probarPersistenciaXml();
 
         System.out.println();
         System.out.println("Resultado: " + pasaron + " pasaron, " + fallaron + " fallaron.");
@@ -247,6 +261,133 @@ public class pruebaLogica {
         for (categoria c : almacenDatos.categorias) {
             if (c.getId().equals(id)) {
                 return c;
+            }
+        }
+        return null;
+    }
+
+    private static void probarCrearRecurso() {
+        controladorRecursos controlador = new controladorRecursos();
+        int cantidadAntes = controlador.listarRecursos().size();
+        categoria catLaptop = almacenDatos.categorias.get(1);
+
+        controlador.crearRecurso("REC-TEST", catLaptop, "Recurso de prueba");
+
+        int cantidadDespues = controlador.listarRecursos().size();
+        verificar("crear recurso aumenta la lista de recursos", cantidadDespues == cantidadAntes + 1);
+    }
+
+    private static void probarNoCrearRecursoConIdRepetido() {
+        controladorRecursos controlador = new controladorRecursos();
+        categoria catLaptop = almacenDatos.categorias.get(1);
+        boolean lanzoExcepcion = false;
+        try {
+            controlador.crearRecurso("REC-TEST", catLaptop, "Otra descripcion");
+        } catch (IllegalArgumentException ex) {
+            lanzoExcepcion = true;
+        }
+        verificar("no se puede crear un recurso con un Id que ya existe", lanzoExcepcion);
+    }
+
+    private static void probarEditarRecurso() {
+        controladorRecursos controlador = new controladorRecursos();
+        recurso recursoPrueba = buscarRecursoPorId("REC-TEST");
+        categoria catSalaJuntas = almacenDatos.categorias.get(2);
+
+        controlador.editarRecurso(recursoPrueba, catSalaJuntas, "Descripcion editada");
+
+        verificar("editar recurso actualiza la categoria", recursoPrueba.getCategoria() == catSalaJuntas);
+        verificar("editar recurso actualiza la descripcion", recursoPrueba.getDescripcion().equals("Descripcion editada"));
+    }
+
+    private static void probarNoEliminarRecursoConReservas() {
+        controladorRecursos controlador = new controladorRecursos();
+        recurso recursoOcupado = almacenDatos.recursos.get(0);
+
+        boolean lanzoExcepcion = false;
+        try {
+            controlador.eliminarRecurso(recursoOcupado);
+        } catch (IllegalStateException ex) {
+            lanzoExcepcion = true;
+        }
+        verificar("no se puede eliminar un recurso que esta asignado en una reserva", lanzoExcepcion);
+    }
+
+    private static void probarEliminarRecursoSinReservas() {
+        controladorRecursos controlador = new controladorRecursos();
+        recurso recursoPrueba = buscarRecursoPorId("REC-TEST");
+
+        controlador.eliminarRecurso(recursoPrueba);
+
+        verificar("eliminar un recurso sin reservas lo quita de la lista", buscarRecursoPorId("REC-TEST") == null);
+    }
+
+    private static void probarGenerarReportePdf() {
+        try {
+            String[] encabezados = {"Id", "Descripcion"};
+            List<String[]> filas = new ArrayList<>();
+            filas.add(new String[]{"CAT-001", "Categoria de prueba"});
+            filas.add(new String[]{"CAT-002", "Otra categoria de prueba"});
+
+            Path archivoTemporal = Files.createTempFile("reporte_prueba", ".pdf");
+            generadorPdf.generarReporte(archivoTemporal, "Reporte de prueba", encabezados, filas);
+
+            byte[] contenido = Files.readAllBytes(archivoTemporal);
+            String encabezadoPdf = new String(contenido, 0, Math.min(5, contenido.length));
+            verificar("generarReporte produce un archivo con encabezado %PDF-", encabezadoPdf.equals("%PDF-"));
+            verificar("generarReporte produce un archivo con contenido", contenido.length > 100);
+
+            Files.deleteIfExists(archivoTemporal);
+        } catch (Exception ex) {
+            verificar("generarReporte no lanza excepciones con datos normales", false);
+        }
+    }
+
+    private static void probarGenerarReportePdfConTablaVacia() {
+        try {
+            String[] encabezados = {"Id", "Descripcion"};
+            Path archivoTemporal = Files.createTempFile("reporte_prueba_vacio", ".pdf");
+            generadorPdf.generarReporte(archivoTemporal, "Reporte sin registros", encabezados, new ArrayList<>());
+
+            byte[] contenido = Files.readAllBytes(archivoTemporal);
+            verificar("generarReporte con tabla vacia igual produce un PDF valido", contenido.length > 50);
+
+            Files.deleteIfExists(archivoTemporal);
+        } catch (Exception ex) {
+            verificar("generarReporte no lanza excepciones con tabla vacia", false);
+        }
+    }
+
+    private static void probarPersistenciaXml() {
+        int usuariosAntes = almacenDatos.usuarios.size();
+        int categoriasAntes = almacenDatos.categorias.size();
+        int recursosAntes = almacenDatos.recursos.size();
+        int reservasAntes = almacenDatos.reservas.size();
+
+        persistenciaXml.guardar();
+
+        java.io.File archivoXml = new java.io.File("datos.xml");
+        verificar("guardar crea el archivo datos.xml", archivoXml.exists() && archivoXml.length() > 0);
+
+        boolean cargadoDesdeXml = persistenciaXml.cargar();
+        verificar("cargar lee el archivo datos.xml exitosamente", cargadoDesdeXml);
+        verificar("cargar recupera la misma cantidad de usuarios", almacenDatos.usuarios.size() == usuariosAntes);
+        verificar("cargar recupera la misma cantidad de categorias", almacenDatos.categorias.size() == categoriasAntes);
+        verificar("cargar recupera la misma cantidad de recursos", almacenDatos.recursos.size() == recursosAntes);
+        verificar("cargar recupera la misma cantidad de reservas", almacenDatos.reservas.size() == reservasAntes);
+
+        usuario adminRecuperado = almacenDatos.buscarUsuario("admin");
+        verificar("el admin recuperado del XML se puede autenticar", adminRecuperado != null && adminRecuperado.autenticar("admin"));
+
+        reserva primeraReservaRecuperada = almacenDatos.reservas.get(0);
+        verificar("la reserva recuperada del XML conserva sus recursos asignados",
+                !primeraReservaRecuperada.getRecursosAsignados().isEmpty());
+    }
+
+    private static recurso buscarRecursoPorId(String id) {
+        for (recurso r : almacenDatos.recursos) {
+            if (r.getId().equals(id)) {
+                return r;
             }
         }
         return null;
