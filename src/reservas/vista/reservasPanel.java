@@ -12,6 +12,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -27,6 +28,7 @@ public class reservasPanel extends JPanel {
     private final controladorReservas controlador = new controladorReservas();
     private final funcionario funcionario;
 
+    private final JTextField campoFraseIA = new JTextField();
     private final JTextField campoActividad = new JTextField();
     private final JTextField campoFecha = new JTextField();
     private final JComboBox<LocalTime> comboHoraInicio = new JComboBox<>(horasDelDia());
@@ -76,6 +78,31 @@ public class reservasPanel extends JPanel {
         tarjeta.add(Box.createVerticalStrut(14));
 
         campoFecha.setText(LocalDate.now().format(FORMATO_FECHA));
+
+        JLabel etiquetaIA = estilos.etiquetaTitulo("Reservar con IA (opcional)");
+        etiquetaIA.setAlignmentX(Component.LEFT_ALIGNMENT);
+        tarjeta.add(etiquetaIA);
+        tarjeta.add(Box.createVerticalStrut(4));
+
+        campoFraseIA.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(estilos.BORDE, 1, true),
+                BorderFactory.createEmptyBorder(4, 8, 4, 8)));
+        JPanel filaIA = new JPanel(new BorderLayout(8, 0));
+        filaIA.setOpaque(false);
+        filaIA.setAlignmentX(Component.LEFT_ALIGNMENT);
+        filaIA.add(campoFraseIA, BorderLayout.CENTER);
+        JButton botonExtraerIA = estilos.botonSecundario("Extraer con IA");
+        botonExtraerIA.addActionListener(e -> accionExtraerConIA());
+        filaIA.add(botonExtraerIA, BorderLayout.EAST);
+        tarjeta.add(filaIA);
+        tarjeta.add(Box.createVerticalStrut(4));
+
+        JLabel ejemploIA = new JLabel("Ejemplo: reservar una sala para 10 personas manana de 2 a 4pm para reunion de ventas");
+        ejemploIA.setForeground(estilos.TEXTO_SECUNDARIO);
+        ejemploIA.setFont(ejemploIA.getFont().deriveFont(11f));
+        ejemploIA.setAlignmentX(Component.LEFT_ALIGNMENT);
+        tarjeta.add(ejemploIA);
+        tarjeta.add(Box.createVerticalStrut(14));
 
         JPanel filaCampos = new JPanel(new GridLayout(1, 4, 10, 0));
         filaCampos.setOpaque(false);
@@ -251,6 +278,75 @@ public class reservasPanel extends JPanel {
         cargarTabla();
     }
 
+    private void accionExtraerConIA() {
+        String frase = campoFraseIA.getText().trim();
+        if (frase.isEmpty()) {
+            mostrarError("Escribe una frase para que la IA la interprete.");
+            return;
+        }
+
+        controladorReservas.resultadoInterpretacionIA resultado;
+        try {
+            resultado = controlador.interpretarConIA(frase);
+        } catch (IllegalStateException ex) {
+            mostrarError(ex.getMessage());
+            return;
+        }
+
+        if (resultado.actividad != null && !resultado.actividad.isBlank()) {
+            campoActividad.setText(resultado.actividad);
+        }
+        if (resultado.fecha != null) {
+            campoFecha.setText(resultado.fecha.format(FORMATO_FECHA));
+        }
+        if (resultado.horaInicio != null) {
+            comboHoraInicio.setSelectedItem(horaMasCercana(resultado.horaInicio));
+        }
+        if (resultado.horaFin != null) {
+            comboHoraFin.setSelectedItem(horaMasCercana(resultado.horaFin));
+        }
+
+        listaCategorias.clearSelection();
+        for (categoria categoria : resultado.categoriasReconocidas) {
+            int indice = indiceDeCategoria(categoria);
+            if (indice >= 0) {
+                listaCategorias.addSelectionInterval(indice, indice);
+            }
+        }
+
+        StringBuilder aviso = new StringBuilder("Revisa los datos antes de reservar.");
+        if (!resultado.categoriasNoReconocidas.isEmpty()) {
+            aviso.append("\nLa IA menciono categorias que no reconozco: ")
+                    .append(String.join(", ", resultado.categoriasNoReconocidas))
+                    .append(". Selecciona manualmente las que correspondan.");
+        }
+        JOptionPane.showMessageDialog(this, aviso.toString(), "Datos extraidos con IA",
+                JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private LocalTime horaMasCercana(LocalTime hora) {
+        LocalTime mejor = null;
+        long mejorDiferencia = Long.MAX_VALUE;
+        for (int i = 0; i < comboHoraInicio.getItemCount(); i++) {
+            LocalTime candidata = comboHoraInicio.getItemAt(i);
+            long diferencia = Math.abs(Duration.between(candidata, hora).toMinutes());
+            if (diferencia < mejorDiferencia) {
+                mejorDiferencia = diferencia;
+                mejor = candidata;
+            }
+        }
+        return mejor;
+    }
+
+    private int indiceDeCategoria(categoria categoria) {
+        for (int i = 0; i < listaCategorias.getModel().getSize(); i++) {
+            if (listaCategorias.getModel().getElementAt(i).equals(categoria)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     private void accionCancelar() {
         int fila = tablaReservas.getSelectedRow();
         if (fila == -1) {
@@ -276,6 +372,7 @@ public class reservasPanel extends JPanel {
     }
 
     private void limpiarFormulario() {
+        campoFraseIA.setText("");
         campoActividad.setText("");
         campoFecha.setText(LocalDate.now().format(FORMATO_FECHA));
         comboHoraInicio.setSelectedIndex(0);

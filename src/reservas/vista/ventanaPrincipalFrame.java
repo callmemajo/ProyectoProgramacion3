@@ -15,7 +15,7 @@ public class ventanaPrincipalFrame extends JFrame {
         this.usuario = usuario;
         construirInterfaz();
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(920, 660);
+        setSize(920, 760);
         setLocationRelativeTo(null);
     }
 
@@ -63,7 +63,10 @@ public class ventanaPrincipalFrame extends JFrame {
         pestanas.setFont(pestanas.getFont().deriveFont(Font.BOLD, 13f));
         pestanas.setBackground(Color.WHITE);
         if (usuario instanceof funcionario funcionario) {
-            pestanas.addTab("Reservas", new reservasPanel(funcionario));
+            JScrollPane scrollReservas = new JScrollPane(new reservasPanel(funcionario));
+            scrollReservas.setBorder(BorderFactory.createEmptyBorder());
+            scrollReservas.getVerticalScrollBar().setUnitIncrement(16);
+            pestanas.addTab("Reservas", scrollReservas);
             pestanas.addTab("Calendarizacion", new calendarizacionRecursosPanel());
             pestanas.addTab("Actividades", new actividadesPanel());
             pestanas.addTab("Estadisticas", new estadisticasPanel());
