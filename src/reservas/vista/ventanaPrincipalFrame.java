@@ -69,7 +69,7 @@ public class ventanaPrincipalFrame extends JFrame {
             pestanas.addTab("Estadisticas", new estadisticasPanel());
         } else {
             pestanas.addTab("Funcionarios", new funcionariosPanel());
-            pestanas.addTab("Categorias", pantallaPendiente("Lista de categorias de recursos"));
+            pestanas.addTab("Categorias", new categoriasPanel());
             pestanas.addTab("Recursos", pantallaPendiente("Lista de recursos"));
             pestanas.addTab("Calendarizacion", new calendarizacionRecursosPanel());
             pestanas.addTab("Actividades", new actividadesPanel());

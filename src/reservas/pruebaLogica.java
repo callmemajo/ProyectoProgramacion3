@@ -1,3 +1,4 @@
+import reservas.controller.controladorCategorias;
 import reservas.controller.controladorFuncionarios;
 import reservas.almacenDatos;
 import reservas.modelo.*;
@@ -23,6 +24,11 @@ public class pruebaLogica {
         probarEditarFuncionario();
         probarNoEliminarFuncionarioConReservas();
         probarEliminarFuncionarioSinReservas();
+        probarCrearCategoria();
+        probarNoCrearCategoriaConIdRepetido();
+        probarEditarCategoria();
+        probarNoEliminarCategoriaConRecursos();
+        probarEliminarCategoriaSinRecursos();
 
         System.out.println();
         System.out.println("Resultado: " + pasaron + " pasaron, " + fallaron + " fallaron.");
@@ -183,6 +189,67 @@ public class pruebaLogica {
         controlador.eliminarFuncionario(pedro);
 
         verificar("eliminar un funcionario sin reservas lo quita de la lista", almacenDatos.buscarUsuario("333") == null);
+    }
+
+    private static void probarCrearCategoria() {
+        controladorCategorias controlador = new controladorCategorias();
+        int cantidadAntes = controlador.listarCategorias().size();
+
+        controlador.crearCategoria("CAT-TEST", "Categoria de prueba");
+
+        int cantidadDespues = controlador.listarCategorias().size();
+        verificar("crear categoria aumenta la lista de categorias", cantidadDespues == cantidadAntes + 1);
+    }
+
+    private static void probarNoCrearCategoriaConIdRepetido() {
+        controladorCategorias controlador = new controladorCategorias();
+        boolean lanzoExcepcion = false;
+        try {
+            controlador.crearCategoria("CAT-TEST", "Otra descripcion");
+        } catch (IllegalArgumentException ex) {
+            lanzoExcepcion = true;
+        }
+        verificar("no se puede crear una categoria con un Id que ya existe", lanzoExcepcion);
+    }
+
+    private static void probarEditarCategoria() {
+        controladorCategorias controlador = new controladorCategorias();
+        categoria catPrueba = buscarCategoriaPorId("CAT-TEST");
+
+        controlador.editarCategoria(catPrueba, "Descripcion editada");
+
+        verificar("editar categoria actualiza la descripcion", catPrueba.getDescripcion().equals("Descripcion editada"));
+    }
+
+    private static void probarNoEliminarCategoriaConRecursos() {
+        controladorCategorias controlador = new controladorCategorias();
+        categoria catSalaJuntas = almacenDatos.categorias.get(2);
+
+        boolean lanzoExcepcion = false;
+        try {
+            controlador.eliminarCategoria(catSalaJuntas);
+        } catch (IllegalStateException ex) {
+            lanzoExcepcion = true;
+        }
+        verificar("no se puede eliminar una categoria que tiene recursos", lanzoExcepcion);
+    }
+
+    private static void probarEliminarCategoriaSinRecursos() {
+        controladorCategorias controlador = new controladorCategorias();
+        categoria catPrueba = buscarCategoriaPorId("CAT-TEST");
+
+        controlador.eliminarCategoria(catPrueba);
+
+        verificar("eliminar una categoria sin recursos la quita de la lista", buscarCategoriaPorId("CAT-TEST") == null);
+    }
+
+    private static categoria buscarCategoriaPorId(String id) {
+        for (categoria c : almacenDatos.categorias) {
+            if (c.getId().equals(id)) {
+                return c;
+            }
+        }
+        return null;
     }
 
     private static void verificar(String descripcion, boolean condicion) {
