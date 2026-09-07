@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<sistemaReservas>
+  <usuarios>
+    <usuario clave="admin" id="admin" rol="ADMINISTRADOR"/>
+    <usuario clave="111" id="111" nombre="Juan Perez" rol="FUNCIONARIO" telefono="3323"/>
+    <usuario clave="clave222" id="222" nombre="Maria Perez" rol="FUNCIONARIO" telefono="222222"/>
+  </usuarios>
+  <categorias>
+    <categoria descripcion="Sala para 10 personas" id="CAT-000001"/>
+    <categoria descripcion="Laptop windows" id="CAT-000002"/>
+    <categoria descripcion="Sala de Juntas" id="CAT-000003"/>
+  </categorias>
+  <recursos>
+    <recurso categoriaId="CAT-000002" descripcion="Laptop #238715" id="238715"/>
+    <recurso categoriaId="CAT-000001" descripcion="Sala 1 primer piso" id="34343"/>
+    <recurso categoriaId="CAT-000002" descripcion="Laptop #45238" id="45238"/>
+    <recurso categoriaId="CAT-000003" descripcion="Sala de Juntas 3er piso" id="51010"/>
+  </recursos>
+  <reservas>
+    <reserva actividad="Reunion clientes" estado="ACTIVA" fecha="2026-07-31" funcionarioId="111" horaFin="10:00" horaInicio="08:00" id="RES-000001">
+      <recursoAsignado id="238715"/>
+      <recursoAsignado id="34343"/>
+    </reserva>
+    <reserva actividad="Sesion de Junta Directiva" estado="ACTIVA" fecha="2026-08-05" funcionarioId="111" horaFin="11:00" horaInicio="09:00" id="RES-000003">
+      <recursoAsignado id="238715"/>
+      <recursoAsignado id="45238"/>
+    </reserva>
+    <reserva actividad="Reunion de Control" estado="CANCELADA" fecha="2026-08-12" funcionarioId="111" horaFin="09:00" horaInicio="08:00" id="RES-000005">
+      <recursoAsignado id="45238"/>
+    </reserva>
+    <reserva actividad="Prueba automatica" estado="ACTIVA" fecha="2026-09-17" funcionarioId="111" horaFin="15:00" horaInicio="14:00" id="RES-000006">
+      <recursoAsignado id="51010"/>
+    </reserva>
+    <reserva actividad="Reserva a cancelar" estado="CANCELADA" fecha="2026-09-27" funcionarioId="111" horaFin="11:00" horaInicio="10:00" id="RES-000007">
+      <recursoAsignado id="51010"/>
+    </reserva>
+  </reservas>
+  <siguienteNumeroReserva valor="8"/>
+</sistemaReservas>
