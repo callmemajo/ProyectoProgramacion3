@@ -28,12 +28,9 @@
     <reserva actividad="Reunion de Control" estado="CANCELADA" fecha="2026-08-12" funcionarioId="111" horaFin="09:00" horaInicio="08:00" id="RES-000005">
       <recursoAsignado id="45238"/>
     </reserva>
-    <reserva actividad="Prueba automatica" estado="ACTIVA" fecha="2026-09-17" funcionarioId="111" horaFin="15:00" horaInicio="14:00" id="RES-000006">
-      <recursoAsignado id="51010"/>
-    </reserva>
-    <reserva actividad="Reserva a cancelar" estado="CANCELADA" fecha="2026-09-27" funcionarioId="111" horaFin="11:00" horaInicio="10:00" id="RES-000007">
-      <recursoAsignado id="51010"/>
+    <reserva actividad="Reunion para new hire" estado="ACTIVA" fecha="2026-09-09" funcionarioId="111" horaFin="19:00" horaInicio="06:00" id="RES-000006">
+      <recursoAsignado id="238715"/>
     </reserva>
   </reservas>
-  <siguienteNumeroReserva valor="8"/>
+  <siguienteNumeroReserva valor="7"/>
 </sistemaReservas>
